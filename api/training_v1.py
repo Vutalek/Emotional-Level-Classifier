@@ -8,11 +8,17 @@ from sklearn.metrics import f1_score
 import dill as pickle
 import time
 
+global parallel, jobs
+parallel = False
+jobs = 4
+
+global data_path, model_path_eng, model_path_emo
 data_path = "./data/emotional_monitoring_dataset_with_target.csv"
 model_path_eng = "./models/model_eng_v1.pk"
 model_path_emo = "./models/model_emo_v1.pk"
 
 def train(target):
+    global data_path
     dataset = pd.read_csv(data_path)
     dataset["EngagementLevel"] = dataset["EngagementLevel"].map({1: "Disengaged", 2: "Moderately Engaged", 3: "Highly Engaged"})
 
@@ -28,12 +34,11 @@ def train(target):
     )
 
     boosting_params = {
-        "gradientboostingclassifier__n_estimators": [20, 25, 30],
-        "beamsearch__beam": [4, 5, 6],
-        "beamsearch__gb_estimators": [20, 25, 30]
+        "gradientboostingclassifier__n_estimators": [5, 6, 7, 8, 9, 10],
     }
 
-    grid = GridSearchCV(pipe, param_grid = boosting_params, scoring = "f1_macro", n_jobs = -1)
+    global parallel, jobs
+    grid = GridSearchCV(pipe, param_grid = boosting_params, scoring = "f1_macro", n_jobs = jobs if parallel else None)
     grid.fit(X_train, y_train)
 
     f1 = f1_score(y_test, grid.predict(X_test), average = "macro")
@@ -73,11 +78,11 @@ class PreProcessor(BaseEstimator, TransformerMixin):
         return X
     
 class BeamSearch(BaseEstimator, TransformerMixin):
-    def __init__(self, beam = 5, folds = 5, gb_estimators = 25, stop_criterion = 2):
+    def __init__(self, beam = 5, folds = 5, gb_estimators = 5, stop = 2):
         self.beam = beam
         self.folds = folds
         self.gb_estimators = gb_estimators
-        self.stop_criterion = stop_criterion
+        self.stop = stop
 
     def fit(self, X, y):
         n_features = len(X.columns)
@@ -93,7 +98,7 @@ class BeamSearch(BaseEstimator, TransformerMixin):
                 best_score = sorted_cv_score[0]
                 best_features = R[0]
                 best_dim = j
-            if j - best_dim >= self.stop_criterion:
+            if j - best_dim >= self.stop:
                 self.best_score = best_score
                 self.best_features = best_features
                 return self
@@ -123,7 +128,8 @@ if __name__ == "__main__":
     t1 = time.time()
     grid_eng, f1_eng = train("EngagementLevel")
     t2 = time.time()
-    print(f"Training completed in {(t2 - t1) // 1 // 60} minutes.")
+    seconds = (t2 - t1) // 1
+    print(f"Training completed in {int(seconds // 60)} minutes {int(seconds % 60)} seconds.")
 
     print(f"Best parameters: {grid_eng.best_params_}")
 
@@ -135,7 +141,8 @@ if __name__ == "__main__":
     t1 = time.time()
     grid_emo, f1_emo = train("EmotionalState")
     t2 = time.time()
-    print(f"Training completed in {(t2 - t1) // 1 / 60} minutes.")
+    seconds = (t2 - t1) // 1
+    print(f"Training completed in {int(seconds // 60)} minutes {int(seconds % 60)} seconds.")
 
     print(f"Best parameters: {grid_emo.best_params_}")
 
