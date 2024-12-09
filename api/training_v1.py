@@ -8,17 +8,14 @@ from sklearn.metrics import f1_score
 import dill as pickle
 import time
 
-global parallel, jobs
-parallel = True
+parallel = False
 jobs = 4
 
-global data_path, model_path_eng, model_path_emo
 data_path = "./data/emotional_monitoring_dataset_with_target.csv"
-model_path_eng = "./models/model_eng_v1.pk"
-model_path_emo = "./models/model_emo_v1.pk"
+model_path_eng = "./models/model_eng_v1.sm"
+model_path_emo = "./models/model_emo_v1.sm"
 
 def train(target):
-    global data_path
     dataset = pd.read_csv(data_path)
     dataset["EngagementLevel"] = dataset["EngagementLevel"].map({1: "Disengaged", 2: "Moderately Engaged", 3: "Highly Engaged"})
 
@@ -37,7 +34,6 @@ def train(target):
         "gradientboostingclassifier__n_estimators": [5, 6, 7, 8, 9, 10],
     }
 
-    global parallel, jobs
     grid = GridSearchCV(pipe, param_grid = boosting_params, scoring = "f1_macro", n_jobs = jobs if parallel else None)
     grid.fit(X_train, y_train)
 
@@ -64,18 +60,17 @@ class PreProcessor(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        with pd.option_context("future.no_silent_downcasting", True):
-            X["HeartRate"] = X["HeartRate"].fillna(self.mean_heart_rate).infer_objects(copy = False)
-            X["SkinConductance"] = X["SkinConductance"].fillna(self.mean_skin_conductance).infer_objects(copy = False)
-            X["EEG"] = X["EEG"].fillna(self.mean_eeg).infer_objects(copy = False)
-            X["Temperature"] = X["Temperature"].fillna(self.mean_temperature).infer_objects(copy = False)
-            X["PupilDiameter"] = X["PupilDiameter"].fillna(self.mean_pupil_diameter).infer_objects(copy = False)
-            X["SmileIntensity"] = X["SmileIntensity"].fillna(self.mean_smile_intensity).infer_objects(copy = False)
-            X["FrownIntensity"] = X["FrownIntensity"].fillna(self.mean_frown_intensity).infer_objects(copy = False)
-            X["CortisolLevel"] = X["CortisolLevel"].fillna(self.mean_cortisol_level).infer_objects(copy = False)
-            X["ActivityLevel"] = X["ActivityLevel"].fillna(self.mean_activity_level).infer_objects(copy = False)
-            X["AmbientNoiseLevel"] = X["AmbientNoiseLevel"].fillna(self.mean_noise_level).infer_objects(copy = False)
-            X["LightingLevel"] = X["LightingLevel"].fillna(self.mean_light_level).infer_objects(copy = False)
+        X["HeartRate"] = X["HeartRate"].fillna(self.mean_heart_rate)
+        X["SkinConductance"] = X["SkinConductance"].fillna(self.mean_skin_conductance)
+        X["EEG"] = X["EEG"].fillna(self.mean_eeg)
+        X["Temperature"] = X["Temperature"].fillna(self.mean_temperature)
+        X["PupilDiameter"] = X["PupilDiameter"].fillna(self.mean_pupil_diameter)
+        X["SmileIntensity"] = X["SmileIntensity"].fillna(self.mean_smile_intensity)
+        X["FrownIntensity"] = X["FrownIntensity"].fillna(self.mean_frown_intensity)
+        X["CortisolLevel"] = X["CortisolLevel"].fillna(self.mean_cortisol_level)
+        X["ActivityLevel"] = X["ActivityLevel"].fillna(self.mean_activity_level)
+        X["AmbientNoiseLevel"] = X["AmbientNoiseLevel"].fillna(self.mean_noise_level)
+        X["LightingLevel"] = X["LightingLevel"].fillna(self.mean_light_level)
         return X
     
 class BeamSearch(BaseEstimator, TransformerMixin):
