@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset = "utf-8" />
+        <link rel = "stylesheet" type = "text/css" href = "styles.css" />
+        <link rel = "icon" type = "image/png" href = "images/favicon.png" />
+        <title>Emotions</title>
+    </head>
+    <body>
+        <h1>Engagement level and emotional state predictions</h1>
+        <div>
+            <p>
+                <label>Heart rate</label> <br />
+                <input type = "number" id = "heart_rate"/>
+            </p>
+            <p>
+                <label>Skin conductance</label> <br />
+                <input type = "number" id = "skin_conductance" />
+            </p>
+            <p>
+                <label>EEG</label> <br />
+                <input type = "number" id = "eeg" />
+            </p>
+            <p>
+                <label>Activity level</label> <br />
+                <input type = "number" id = "activity_level" />
+            </p>
+            <p>
+                <button id = "send_btn">Send</button>
+            </p>
+        </div>
+        <script src = "script.js"></script>
+        <span>
+            <text id = "engagement_level"></text> <br />
+            <text id = "emotional_state"></text>
+        </span>
+        <p>
+            <h2>About fields</h2>
+            <b>Heart rate:</b> The student's heart rate, measured in beats per minute (bpm). This is indicative of the student's emotional and physical state, with lower rates typically associated with calm and engaged states, and higher rates with stress or disengagement.
+            <br />
+            <b>Skin conductance:</b> Skin conductance (also known as galvanic skin response or GSR), measured in microsiemens (µS). This reflects emotional arousal, with higher values correlating to higher emotional engagement or stress.
+            <br />
+            <b>EEG (Electroencephalography):</b> The frequency of brain waves recorded through EEG. Higher EEG values indicate focused mental engagement, while lower values can suggest distraction or disengagement.
+            <br />
+            <b>Activity level:</b> The level of physical activity, measured in steps or movement intensity. This reflects how physically active the student is, which can correlate with emotional engagement or stress.
+
+            <h2>About model</h2>
+            Classificator was trained on <a href = "https://www.kaggle.com/datasets/ziya07/emotional-monitoring-dataset">this</a> kaggle dataset.
+            <br />
+            Model is GradientBoosting classifier with beam search as feature selection algorithm. Fields in the form above are those features that were selected by beam search during training.
+        </p>
+    </body>
+</html>

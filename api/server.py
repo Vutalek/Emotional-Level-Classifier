@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 import json
 import pandas as pd
 import dill as pickle
@@ -6,10 +7,14 @@ from training_v1 import PreProcessor, BeamSearch
 from pandas import option_context
 
 app = Flask(__name__)
+cors = CORS(app)
 app.config.from_file("settings.json", load=json.load)
 
 @app.route("/predict", methods = ["POST"])
+@cross_origin() 
 def predict():
+    if "Auth" not in request.headers:
+         return unauthorized()
     if request.headers["Auth"] != app.config["API_KEY"]:
         return unauthorized()
 
@@ -49,8 +54,8 @@ def predict():
 
     print("Sending prediction.")
     response = jsonify(
-        engagementLevel = str(prediction_eng),
-        emotionalState = str(prediction_emo)
+        engagementLevel = prediction_eng[0],
+        emotionalState = prediction_emo[0]
     )
     response.status_code = 200
     return response
